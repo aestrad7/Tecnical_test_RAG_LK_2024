@@ -2,7 +2,7 @@
 
 1. ###### Business case:
 
-   1. The problem is the loss of time in reviewing documentation, consulting simple questions about specific tools
+   1. The problem is the waste of time to review a large amount of documentation looking for the answer to simple questions about specific tools.
    2. A tool is proposed that can **centralize the information and in a fluid and dynamic way answer questions about the documentation, adapting to the context that was posed**. As a business case, the KPIs that are proposed would revolve around the number of uses per individual, the ratio of correct answers and user feedback.
 
 2. ###### Retrieval-Augmented Generation:
@@ -17,7 +17,7 @@
 - Seeks to test the usability of the models locally for a quick test
    - It is concluded that it is possible but slower, so the tests shown will be done with gpt-3.5_turbo
 - A **local** vector storage solution is proposed
-   - It is discarded and after reading the documentation a little it is concluded to use the vector store [chroma](https://github.com/chroma-core/chroma)
+   - the use of a local vector storage using *DocArrayHnswSearch* is discarded and after reading the documentation it is concluded to use the vector store [chroma](https://github.com/chroma-core/chroma)
 - ![alt text](sagemaker_documentation/images/Notebook1_arch.png)
 
 ## [rag_v2_1_chroma_chunk_500_naive](notebook/rag_v2_1_chroma_chunk_500_naive.ipynb)
@@ -61,20 +61,22 @@
 
 ---
 
-1. Oportunidades de mejora
-    4.1 Planteamiento de clases (main y test)
-    4.2 Modelos
+1. Opportunities for improvement
+    4.1 Migration of code to classes (main and test)
+    4.2 Models
     4.3 Prompts (OOV)
-    4.4 split y chunkeo
-2. Siguientes pasos
-    5.1 Requerimientos de siguiente iteracion 
-    5.2 Requerimientos de despliegue
-    5.3 Requerimientos de actualizacion de embeddings
-3. #### Siguientes pasos
+    4.4 splitting and chunking
 
-    1. Terminar de depurar las clases y el main
-    2. Iterar los prompts de cada caso e intentar distintas estrategias de chunk
-    3. Brindar un pool de preguntas y respuestas de test mas completo
-    4. Analizar la posibilidad de usar distintos modelos en un hardware diferente
-    5. Explorar la posibilidad de usar herramientas cloud para el storage, procesamiento y despliegue de esta herramienta
+2. Next steps
+    5.1 Next iteration requirements 
+    5.2 Deployment requirements
+    5.3 Embedding update requirements
+
+3. #### Next steps
+
+    1. Finish debugging the classes and main.
+    2. Iterate the prompts for each case and try different chunking strategies.
+    3. Provide a more complete pool of test questions and answers.
+    4. Analyze the possibility of using different models on different hardware.
+    5. Explore the possibility of using cloud tools for storage, processing and deployment of this tool.
 
