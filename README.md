@@ -1,120 +1,80 @@
-## Notebook1:
+# RAG SOLUTION MOCK
 
-- Busca probar la usabilidad de los modelos en local para una prueba rápida
-  - Se concluye que es posible pero mas lento, por lo que los test mostrados se harán con gpt-3.5_turbo
-- Se plantea una solución local de vector storage
-  - Se desecha y tras leer un poco la documentación se concluye usar el vector store [chroma](https://github.com/chroma-core/chroma)
-- ![alt text](sagemaker_documentation/images/Notebook1_arch.png)
+1. ###### Business case:
 
-## rag_v2_1chroma_chunk_500_naive
+   1. The problem is the loss of time in reviewing documentation, consulting simple questions about specific tools
+   2. A tool is proposed that can **centralize the information and in a fluid and dynamic way answer questions about the documentation, adapting to the context that was posed**. As a business case, the KPIs that are proposed would revolve around the number of uses per individual, the ratio of correct answers and user feedback.
 
-- En este noteook se plantea una arquitectura tipo [naive](https://www.marktechpost.com/2024/04/01/evolution-of-rags-naive-rag-advanced-rag-and-modular-rag-architectures/), que consta de un retrival que integra la salida del vector store y el prompt con la estructura de consulta, las consultas directas y el proceso de procesamiento, búsqueda, entrega y "parseo "de datos de salida para dar una respuesta
-- El objetivo de este noteook es revisar desde el proceso de ingesta de datos y partición (chunks),  pasando por la forma de gestionar los datos en un "vector store" y consultarlos, como se interactúa con un prompt básico y como se testea el modelo y su performance general
+2. ###### Retrieval-Augmented Generation:
 
-#### Paso a paso
+   1. ![alt text](sagemaker_documentation/images/ref1.png)
+   2. [What Is Retrieval-Augmented Generation, aka RAG?](https://blogs.nvidia.com/blog/what-is-retrieval-augmented-generation/) 
 
-- Con lo aprendido en **notebook1**, decidí usar directamente el modelo gpt-3.5-turbo para el análisis, con una temperatura de 0
-
-- Se evaluaron distintos chunk_size_split, que equivalen a cuantos tokens se partirán de cada documento para crear los fragmentos a procesar para generar los embeddings. En este caso se usaron 1000, 500 y 200
-
-  - Al final el ejercicio con 1000 terminaba usando muchos tokens y la api reportaba un exceso de solicitudes por minuto (recordar que se esta usando mi cuenta personal de openai por lo que los limites son mas austeros que en una cuenta corporativa). En el caso de 200,  si bien funcionaba, la partición en 200 tokens parecía ser muy atómica para documentos que en promedio manejan mas de 600 tokens, aproximadamente 2500 caracteres por documento; esto puede dificultar la contextualización y búsqueda de correcta documentación en el retriver.   
-  - Se puede revisar el notebook **rag_v2_1chroma_chunk_1000_naive** para ver que a mayor cantidad de chunk_size en este caso no mejora el performance
-
-- ![alt text](sagemaker_documentation/images/Naive_arch.png)
-
-#### Arquitectura Multi Query v0
-
-- Este notebook amplía el marco naive del RAG para manejar múltiples consultas simultáneamente
-- Este notebook implica una interacción más compleja con el vector storage y un enfoque de procesamiento paralelo o de subprocesos múltiples para manejar múltiples flujos de datos
-- ![alt text](sagemaker_documentation/images/MultyQuery.png)
-- Como conclucion el tener multiples versiones de una pregunta puede llegar a ser beneficioso a la hora de mapear los documentos que permitiran una respuesta mas acertada, sin embargo, dadas las condiciones del modelo actual y un promt naive que dejamos sin mayor interaccion, estas bondades no se evidencian completamente
-
-#### Test y concluciones (RAGAS)
-- Para el ejercicio de testear las soluciones, se plantearon 13 preguntas sobre distintos temas que se tratan en la documentacion y se recurrio a una revision de cada pregunta para plantear una respuesta de manera manual. La idea es comparar segun 6 indicadores cual es el mejor modelo para esta solucion.
-Preguntas:
-    "What is SageMaker?", 
-    "What are all AWS regions where SageMaker is available?",
-    "How to check if an endpoint is KMS encrypted?",
-    "What are SageMaker Geospatial capabilities?",
-    "What is Amazon SageMaker?",
-    "How does SageMaker handle model training scalability?",
-    "Can SageMaker integrate with other AWS services?",
-    "What are SageMaker notebooks?",
-    "How does SageMaker ensure model security?",
-    "What is SageMaker Autopilot?",
-    "How does model monitoring work in SageMaker?",
-    "What types of machine learning models can SageMaker deploy?",
-    "How does SageMaker optimize model performance?",
-    "Can SageMaker process real-time data for predictions?"
-Respuestas:
-    "SageMaker is a comprehensive AWS service that enables developers and data scientists to quickly build, train, and deploy machine learning models in the cloud.",
-    "AWS regions where SageMaker is available include North America, Europe, Asia Pacific, South America, and the Middle East.",
-    "To verify if an endpoint is encrypted with KMS, review the endpoints IAM policies and configurations in the AWS console or using the AWS CLI.",
-    "SageMakers geospatial capabilities allow you to integrate and analyze location data to improve machine learning models, applicable in areas such as logistics and environmental analysis.",
-    "Amazon SageMaker is a fully managed service that provides every developer and data scientist with the ability to build, train, and deploy machine learning models quickly.",
-    "SageMaker automatically scales the training jobs by adjusting the number of instances based on the workload, ensuring efficient use of resources.",
-    "Yes, SageMaker integrates seamlessly with AWS services like S3 for data storage, IAM for security, and Lambda for serverless computing, enhancing its capabilities.",
-    "SageMaker notebooks are Jupyter notebooks hosted on SageMaker, enabling data scientists to prepare and process data, visualize results, and experiment with models directly.",
-    "SageMaker uses AWS IAM to control access, encrypts data at rest using KMS, and data in transit using SSL to ensure secure model training and deployment.",
-    "SageMaker Autopilot is an automated machine learning (AutoML) service that automatically creates, trains, and tunes the best machine learning models based on the data provided.",
-    "SageMaker Model Monitor continuously tracks the models performance in production, detecting deviations in model quality to provide alerts and insights.",
-    "SageMaker supports all common machine learning models, including linear regression, classification, and deep learning models like CNNs and RNNs.",
-    "SageMaker optimizes models by using hyperparameter tuning to automatically find the best version of a model based on the defined criteria and metrics.",
-    "Yes, SageMaker offers real-time prediction capabilities through endpoints that are scalable and can process thousands of requests per second."
-Los indicadores elegidos son:
-    - answer_relevancy: Relevancia de la respuesta
-    - answer_similarity: Similaridad semantica
-    - answer_correctness: Similaridad factual
-    - context_precision: Evalua la presicion del retriver
-    - context_recall: Evalua la completitud del retriver
-    - faithfulness: Evalua la respuesta dada en contraste factual con el contexto seleccionado
-    - context_entity_recall: Evalua la capacidad de usar el contezto completamente para la respuesta
-    ![alt text](sagemaker_documentation/images/test.png)
-- Es probable que haya un sesgo en los modelos usados. Para efectos practicos los 3 rags evaluados usan el mismo modelo y prompts prototipo muy similares. Todos usan la misma particion de fuente de datos y las 13 preguntas fueron generadas con el mismo modelo de rags.
-    - Es por esto que los analisis del retriver son iguales
-    - Es probable que el prompt basico de la estrategia multi query no este sacando probecho completo de sus capacidades
-    - Es probable que el prompt de la estrategia fusion este obviando los retrivers y no este sacando a flote completamente sus capacidades
-    - En las condiciones actuales del test el mejor performance lo da el rag naive
-
-#### Siguientes pasos
-1. Terminar de depurar las clases y el main
-2. Iterar los prompts de cada caso e intentar distintas estrategias de chunk
-3. Brindar un pool de preguntas y respuestas de test mas completo
-4. Analizar la posibilidad de usar distintos modelos en un hardware diferente
-5. Explorar la posibilidad de usar herramientas cloud para el storage, procesamiento y despliegue de esta herramienta
 ---
 
-## Estrictira del speech
-1. Caso de negocio
-  1.1 Especificaciones de caso de negocio
-  1.2 Planteamiento del problema
-2. RAG
-  2.1 Conceptualmente
-  2.2 Notebook 1
-    2.2.1 Concluciones y aprendizajes 
-    2.2.1 Citas
-  2.3 Naive
-    2.3.1 Aprendizajes de 2.2
-    2.3.2 Novedades
-    2.3.3 Citas
-    2.3.4 Testing
-  2.4 Multi Query
-    2.4.1 Novedades
-    2.4.2 Citas
-    2.4.3 Retriver y cadenas
-  2.5 Fusion
-    2.5.1 Novedades
-    2.5.2 Citas
-    2.5.3 Retriver y cadenas
-3. Testing conclusions
-4. Oportunidades de mejora
-  4.1 Planteamiento de clases (main y test)
-  4.2 Modelos
-  4.3 Prompts (OOV)
-  4.4 split y chunkeo
-5. Siguientes pasos
-  5.1 Requerimientos de siguiente iteracion 
-  5.2 Requerimientos de despliegue
-  5.3 Requerimientos de actualizacion de embeddings
+###### [Notebook1](notebook/notebook.ipynb):
+
+- Seeks to test the usability of the models locally for a quick test
+   - It is concluded that it is possible but slower, so the tests shown will be done with gpt-3.5_turbo
+- A **local** vector storage solution is proposed
+   - It is discarded and after reading the documentation a little it is concluded to use the vector store [chroma](https://github.com/chroma-core/chroma)
+- ![alt text](sagemaker_documentation/images/Notebook1_arch.png)
+
+## [rag_v2_1_chroma_chunk_500_naive](notebook/rag_v2_1_chroma_chunk_500_naive.ipynb)
+- In this noteook a **[naive](https://www.marktechpost.com/2024/04/01/evolution-of-rags-naive-rag-advanced-rag-and-modular-rag-architectures/)** type architecture is proposed. This architecture consists of a <u>[retrival](https://python.langchain.com/docs/modules/data_connection/)</u> that integrates the **output** of the **vector store** and the **prompt** with the query structure, the direct queries and the process of processing, searching, delivering and "parsing" the output data to provide a response.
+- The objective of this noteook is to review the process of data ingestion and partitioning (**chunks**), through how to manage the data in a "vector store" and consult it, how to interact with a basic prompt and how to test the model and its overall performance
+- ![alt text](sagemaker_documentation/images/Naive_arch.png)
+
+#### Notes
+
+- With what I learned in **notebook1**, I decided to directly use the <u>gpt-3.5-turbo</u> model for the analysis, with a **temperature of 0** (for greater speed in development)
+- Different chunk_size_splits were evaluated, which are equivalent to how many tokens will be used from each document to create the fragments to be processed to generate the embeddings. In this case 1000, 500 and 200 were used
+
+   - In the end, the exercise with 1000 ended up using many tokens and the API reported an excess of requests per minute *(remember that my personal Openai account is being used, so the limits are more austere than in a corporate account)*. In the case of 200, although it worked, the partition into 200 tokens seemed to be very atomic for documents that on average handle more than 600 tokens, approximately 2500 characters per document; This can make it difficult to contextualize and search for correct documentation in the retriver.
+   - You can check the notebook [**rag_v2_1chroma_chunk_1000_naive**](notebook/rag_v2_1_chroma_chunk_1000.ipynb) to see that a greater amount of chunk_size in this case does not improve performance
+
+## [Multi Query Architecture v0](notebook/rag_v2_2_chroma_multi_query.ipynb)
+- This notebook extends the naive RAG framework to handle multiple queries simultaneously
+- This notebook involves more complex interaction with vector storage and a multi-threaded or parallel processing approach to handle multiple data streams
+- ![alt text](sagemaker_documentation/images/MultyQuery.png)
+- In conclusion, having multiple versions of a question can be beneficial when mapping the documents that will allow a more accurate answer, however, given the conditions of the current model and a naive prompt that we leave without further interaction, these benefits are not fully evident
+
+#### [Test y concluciones (RAGAS)](notebook/test_comparison.ipynb)
+- For the exercise of testing the solutions, 13 questions were asked on different topics that are covered in the documentation and a review of each question was used to provide an answer manually. The idea is to compare according to 6 indicators which is the best model for this solution.
+- [**The chosen indicators from ragas**](https://docs.ragas.io/en/stable/references/metrics.html) are:
   
+     - **answer_relevancy**: Relevance of the answer
+     - **answer_similarity**: Semantic similarity
+     - **answer_correctness**: Factual similarity
+     - **context_precision**: Evaluate the precision of the retriver
+     - **context_recall**: Evaluates the completeness of the retriver
+     - **faithfulness**: Evaluate the given answer in factual contrast with the selected context
+     - **context_entity_recall**: Evaluates the ability to use the context completely for the response
+  
+    - ![alt text](sagemaker_documentation/images/test.png)
+- There is likely a bias in the models used. For practical purposes, the 3 rags evaluated use the same model and very similar prototype prompts. They all use the same data source partition and the 13 questions were generated with the same rag model.
+    
+    - This is why the retriver analyzes are the same
+    - It is likely that the basic multi query strategy prompt is not taking full advantage of its capabilities
+    - It is likely that the fusion strategy prompt is ignoring the retrivers and is not fully exploiting their capabilities
+    - Under the current conditions of the test, the best performance is given by the naive rag
+
+---
+
+1. Oportunidades de mejora
+    4.1 Planteamiento de clases (main y test)
+    4.2 Modelos
+    4.3 Prompts (OOV)
+    4.4 split y chunkeo
+2. Siguientes pasos
+    5.1 Requerimientos de siguiente iteracion 
+    5.2 Requerimientos de despliegue
+    5.3 Requerimientos de actualizacion de embeddings
+3. #### Siguientes pasos
+
+    1. Terminar de depurar las clases y el main
+    2. Iterar los prompts de cada caso e intentar distintas estrategias de chunk
+    3. Brindar un pool de preguntas y respuestas de test mas completo
+    4. Analizar la posibilidad de usar distintos modelos en un hardware diferente
+    5. Explorar la posibilidad de usar herramientas cloud para el storage, procesamiento y despliegue de esta herramienta
 
