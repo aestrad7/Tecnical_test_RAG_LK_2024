@@ -4,7 +4,7 @@
   - Se concluye que es posible pero mas lento, por lo que los test mostrados se harán con gpt-3.5_turbo
 - Se plantea una solución local de vector storage
   - Se desecha y tras leer un poco la documentación se concluye usar el vector store [chroma](https://github.com/chroma-core/chroma)
-- ![alt text](../sagemaker_documentation/images/Notebook1_arch.png)
+- ![alt text](sagemaker_documentation/images/Notebook1_arch.png)
 
 ## rag_v2_1chroma_chunk_500_naive
 
@@ -20,13 +20,13 @@
   - Al final el ejercicio con 1000 terminaba usando muchos tokens y la api reportaba un exceso de solicitudes por minuto (recordar que se esta usando mi cuenta personal de openai por lo que los limites son mas austeros que en una cuenta corporativa). En el caso de 200,  si bien funcionaba, la partición en 200 tokens parecía ser muy atómica para documentos que en promedio manejan mas de 600 tokens, aproximadamente 2500 caracteres por documento; esto puede dificultar la contextualización y búsqueda de correcta documentación en el retriver.   
   - Se puede revisar el notebook **rag_v2_1chroma_chunk_1000_naive** para ver que a mayor cantidad de chunk_size en este caso no mejora el performance
 
-- ![alt text](../sagemaker_documentation/images/Naive_arch.png)
+- ![alt text](sagemaker_documentation/images/Naive_arch.png)
 
 #### Arquitectura Multi Query v0
 
 - Este notebook amplía el marco naive del RAG para manejar múltiples consultas simultáneamente
 - Este notebook implica una interacción más compleja con el vector storage y un enfoque de procesamiento paralelo o de subprocesos múltiples para manejar múltiples flujos de datos
-- ![alt text](../sagemaker_documentation/images/MultyQuery.png)
+- ![alt text](sagemaker_documentation/images/MultyQuery.png)
 - Como conclucion el tener multiples versiones de una pregunta puede llegar a ser beneficioso a la hora de mapear los documentos que permitiran una respuesta mas acertada, sin embargo, dadas las condiciones del modelo actual y un promt naive que dejamos sin mayor interaccion, estas bondades no se evidencian completamente
 
 #### Test y concluciones (RAGAS)
@@ -82,7 +82,39 @@ Los indicadores elegidos son:
 3. Brindar un pool de preguntas y respuestas de test mas completo
 4. Analizar la posibilidad de usar distintos modelos en un hardware diferente
 5. Explorar la posibilidad de usar herramientas cloud para el storage, procesamiento y despliegue de esta herramienta
+---
 
-
+## Estrictira del speech
+1. Caso de negocio
+  1.1 Especificaciones de caso de negocio
+  1.2 Planteamiento del problema
+2. RAG
+  2.1 Conceptualmente
+  2.2 Notebook 1
+    2.2.1 Concluciones y aprendizajes 
+    2.2.1 Citas
+  2.3 Naive
+    2.3.1 Aprendizajes de 2.2
+    2.3.2 Novedades
+    2.3.3 Citas
+    2.3.4 Testing
+  2.4 Multi Query
+    2.4.1 Novedades
+    2.4.2 Citas
+    2.4.3 Retriver y cadenas
+  2.5 Fusion
+    2.5.1 Novedades
+    2.5.2 Citas
+    2.5.3 Retriver y cadenas
+3. Testing conclusions
+4. Oportunidades de mejora
+  4.1 Planteamiento de clases (main y test)
+  4.2 Modelos
+  4.3 Prompts (OOV)
+  4.4 split y chunkeo
+5. Siguientes pasos
+  5.1 Requerimientos de siguiente iteracion 
+  5.2 Requerimientos de despliegue
+  5.3 Requerimientos de actualizacion de embeddings
   
 
